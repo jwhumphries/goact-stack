@@ -10,10 +10,6 @@ tasks:
     cmds:
       - task --list
 
-  # =============================================================================
-  # Development (Docker-based)
-  # =============================================================================
-
   dev:
     desc: Start development environment with hot-reload
     cmds:
@@ -34,23 +30,19 @@ tasks:
     cmds:
       - docker compose exec dev sh
 
-  # =============================================================================
-  # Build & Release (via Dagger)
-  # =============================================================================
-
   build:
     desc: Build production container via Dagger
     cmds:
-      - dagger -m .dagger call release --source=.
+      - defer: rm ./readwillbe-dev.tar
+      - dagger -m .dagger call release --source=. export --path ./{{.APP_NAME}}-local.tar
+      - |
+        id=$(docker load -i ./{{.APP_NAME}}-local.tar | sed -n 's/^Loaded image.*: //p')
+        docker tag $id {{.APP_NAME}}:local
 
   build-frontend:
     desc: Build frontend assets via Dagger
     cmds:
-      - dagger -m .dagger call build-frontend --source=.
-
-  # =============================================================================
-  # Testing & Linting (via Dagger)
-  # =============================================================================
+      - dagger -m .dagger call build-frontend --source=. export --path=./internal/static/dist
 
   test:
     desc: Run Go tests via Dagger
@@ -80,10 +72,6 @@ tasks:
       - task: typecheck
       - task: test
 
-  # =============================================================================
-  # Formatting (via Dagger)
-  # =============================================================================
-
   fmt:
     desc: Format Go code via Dagger
     cmds:
@@ -93,10 +81,6 @@ tasks:
     desc: Format frontend code via Dagger
     cmds:
       - dagger -m .dagger call fmt-frontend --source=. export --path=.
-
-  # =============================================================================
-  # Cleanup
-  # =============================================================================
 
   clean:
     desc: Remove build artifacts
