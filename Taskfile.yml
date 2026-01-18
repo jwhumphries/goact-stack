@@ -2,8 +2,6 @@ version: "3"
 
 vars:
   APP_NAME: goact-stack
-  GIT_COMMIT:
-    sh: git rev-parse --short HEAD 2>/dev/null || echo "unknown"
   DEV_IMAGE: "{{.APP_NAME}}:dev"
 
 tasks:
@@ -13,7 +11,7 @@ tasks:
       - task --list
 
   # =============================================================================
-  # Development
+  # Development (Docker-based)
   # =============================================================================
 
   dev:
@@ -43,12 +41,12 @@ tasks:
   build:
     desc: Build production container via Dagger
     cmds:
-      - dagger call release --source=.
+      - dagger -m .dagger call release --source=.
 
   build-frontend:
     desc: Build frontend assets via Dagger
     cmds:
-      - dagger call build-frontend --source=.
+      - dagger -m .dagger call build-frontend --source=.
 
   # =============================================================================
   # Testing & Linting (via Dagger)
@@ -57,22 +55,22 @@ tasks:
   test:
     desc: Run Go tests via Dagger
     cmds:
-      - dagger call test --source=.
+      - dagger -m .dagger call test --source=.
 
   lint:
     desc: Run Go linter via Dagger
     cmds:
-      - dagger call lint --source=.
+      - dagger -m .dagger call lint --source=.
 
   lint-frontend:
     desc: Run frontend ESLint via Dagger
     cmds:
-      - dagger call lint-frontend --source=.
+      - dagger -m .dagger call lint-frontend --source=.
 
   typecheck:
     desc: Run TypeScript type-check via Dagger
     cmds:
-      - dagger call typecheck --source=.
+      - dagger -m .dagger call typecheck --source=.
 
   check:
     desc: Run all checks (lint, typecheck, test)
@@ -83,49 +81,18 @@ tasks:
       - task: test
 
   # =============================================================================
-  # Formatting
+  # Formatting (via Dagger)
   # =============================================================================
 
   fmt:
-    desc: Format Go code
+    desc: Format Go code via Dagger
     cmds:
-      - go fmt ./...
+      - dagger -m .dagger call fmt --source=. export --path=.
 
   fmt-frontend:
-    desc: Format frontend code (requires local bun)
-    dir: frontend
+    desc: Format frontend code via Dagger
     cmds:
-      - bun run lint --fix
-
-  # =============================================================================
-  # Local Development (without Docker)
-  # =============================================================================
-
-  install:
-    desc: Install frontend dependencies locally
-    dir: frontend
-    cmds:
-      - bun install
-
-  dev-backend:
-    desc: Run Go backend with Air (requires local air)
-    cmds:
-      - air -c .air.toml
-
-  dev-frontend:
-    desc: Run Vite dev server (requires local bun)
-    dir: frontend
-    cmds:
-      - bun run dev
-
-  build-local:
-    desc: Build Go binary locally
-    cmds:
-      - |
-        go build \
-          -ldflags "-X goact-stack/version.Tag={{.GIT_COMMIT}}" \
-          -o ./bin/{{.APP_NAME}} \
-          ./cmd/{{.APP_NAME}}/
+      - dagger -m .dagger call fmt-frontend --source=. export --path=.
 
   # =============================================================================
   # Cleanup

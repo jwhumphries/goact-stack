@@ -72,10 +72,17 @@ func (m *GoactStack) Lint(ctx context.Context, source *dagger.Directory) (string
 }
 
 func (m *GoactStack) lintSource(ctx context.Context, source *dagger.Directory) (string, error) {
-	return dag.GolangciLint().
-		WithModuleCache(dag.CacheVolume("go-mod-cache")).
-		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
-		Run(source).
+	return dag.Container().
+		From("golangci/golangci-lint:v2.1.6-alpine").
+		WithEnvVariable("GOCACHE", "/go-build-cache").
+		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
+		WithEnvVariable("GOLANGCI_LINT_CACHE", "/golangci-lint-cache").
+		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
+		WithMountedCache("/golangci-lint-cache", dag.CacheVolume("golangci-lint-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"}).
 		Stdout(ctx)
 }
 
@@ -177,5 +184,15 @@ func (m *GoactStack) Fmt(source *dagger.Directory) *dagger.Directory {
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"go", "fmt", "./..."}).
+		Directory("/app")
+}
+
+func (m *GoactStack) FmtFrontend(source *dagger.Directory) *dagger.Directory {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithDirectory("/app", source).
+		WithWorkdir("/app/frontend").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "lint", "--fix"}).
 		Directory("/app")
 }

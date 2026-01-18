@@ -54,7 +54,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		if path != "/" && !strings.HasSuffix(path, "/") {
 			// Check if file exists in embedded FS
 			if f, err := distFS.Open(strings.TrimPrefix(path, "/")); err == nil {
-				f.Close()
+				_ = f.Close()
 				fileServer.ServeHTTP(w, r)
 				return
 			}

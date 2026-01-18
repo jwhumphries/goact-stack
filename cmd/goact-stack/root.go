@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -52,7 +53,8 @@ func initConfig() {
 	viper.SetDefault("log_level", "info")
 
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
 			fmt.Fprintf(os.Stderr, "Error reading config file: %v\n", err)
 		}
 	}
