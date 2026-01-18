@@ -1,0 +1,31 @@
+# golangci-lint configuration
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - unconvert
+    - bodyclose
+    - noctx
+    - errorlint
+
+issues:
+  exclude-dirs:
+    - .dagger
+    - vendor
+    - tmp
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - noctx

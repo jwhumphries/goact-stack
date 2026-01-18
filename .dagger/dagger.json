@@ -1,0 +1,13 @@
+{
+  "name": "goact-stack",
+  "engineVersion": "v0.18.3",
+  "sdk": {
+    "source": "go"
+  },
+  "dependencies": [
+    {
+      "name": "golangci-lint",
+      "source": "github.com/sagikazarmark/daggerverse/golangci-lint"
+    }
+  ]
+}

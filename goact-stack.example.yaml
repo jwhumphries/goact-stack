@@ -1,0 +1,9 @@
+# GoAct Stack Configuration
+# Copy this file to goact-stack.yaml and customize as needed.
+# Environment variables with GOACT_ prefix will override these values.
+
+# Server port (default: :8080)
+port: ":8080"
+
+# Log level: debug, info, warn, error (default: info)
+log_level: "info"

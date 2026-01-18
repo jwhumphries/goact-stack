@@ -1,0 +1,26 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "8080:8080"   # Go backend
+      - "3000:3000"   # Vite dev server
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/go-build-cache
+      - bun-cache:/root/.bun
+      - node-modules:/app/frontend/node_modules
+    environment:
+      - GOACT_PORT=:8080
+      - GOACT_LOG_LEVEL=debug
+    stdin_open: true
+    tty: true
+
+volumes:
+  go-mod-cache:
+  go-build-cache:
+  bun-cache:
+  node-modules:

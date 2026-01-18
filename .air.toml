@@ -1,0 +1,53 @@
+# Air configuration for Go hot-reload
+# Documentation: https://github.com/air-verse/air
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Build command
+cmd = "go build -o ./tmp/main ./cmd/goact-stack"
+# Binary to run
+bin = "./tmp/main"
+# Watch these extensions
+include_ext = ["go"]
+# Exclude directories
+exclude_dir = ["tmp", "vendor", "frontend", "node_modules", ".dagger", ".git"]
+# Exclude files
+exclude_file = []
+# Exclude regex patterns
+exclude_regex = ["_test\\.go$"]
+# Exclude unchanged files
+exclude_unchanged = true
+# Follow symlinks
+follow_symlink = false
+# Log file (empty = stdout)
+log = ""
+# Poll interval (ms) - 0 uses filesystem events
+poll = false
+poll_interval = 0
+# Delay before rebuild (ms)
+delay = 1000
+# Stop running old binary on rebuild
+stop_on_error = true
+# Send interrupt signal before kill
+send_interrupt = true
+# Kill delay (ms)
+kill_delay = 500
+
+[log]
+# Show timestamp
+time = true
+# Main log only
+main_only = false
+
+[color]
+# Customize colors
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[misc]
+# Delete tmp directory on exit
+clean_on_exit = true

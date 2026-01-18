@@ -1,0 +1,145 @@
+version: "3"
+
+vars:
+  APP_NAME: goact-stack
+  GIT_COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo "unknown"
+  DEV_IMAGE: "{{.APP_NAME}}:dev"
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  # =============================================================================
+  # Development
+  # =============================================================================
+
+  dev:
+    desc: Start development environment with hot-reload
+    cmds:
+      - docker compose up --build
+
+  dev-stop:
+    desc: Stop development environment
+    cmds:
+      - docker compose down
+
+  dev-logs:
+    desc: View development logs
+    cmds:
+      - docker compose logs -f
+
+  dev-shell:
+    desc: Open shell in dev container
+    cmds:
+      - docker compose exec dev sh
+
+  # =============================================================================
+  # Build & Release (via Dagger)
+  # =============================================================================
+
+  build:
+    desc: Build production container via Dagger
+    cmds:
+      - dagger call release --source=.
+
+  build-frontend:
+    desc: Build frontend assets via Dagger
+    cmds:
+      - dagger call build-frontend --source=.
+
+  # =============================================================================
+  # Testing & Linting (via Dagger)
+  # =============================================================================
+
+  test:
+    desc: Run Go tests via Dagger
+    cmds:
+      - dagger call test --source=.
+
+  lint:
+    desc: Run Go linter via Dagger
+    cmds:
+      - dagger call lint --source=.
+
+  lint-frontend:
+    desc: Run frontend ESLint via Dagger
+    cmds:
+      - dagger call lint-frontend --source=.
+
+  typecheck:
+    desc: Run TypeScript type-check via Dagger
+    cmds:
+      - dagger call typecheck --source=.
+
+  check:
+    desc: Run all checks (lint, typecheck, test)
+    cmds:
+      - task: lint
+      - task: lint-frontend
+      - task: typecheck
+      - task: test
+
+  # =============================================================================
+  # Formatting
+  # =============================================================================
+
+  fmt:
+    desc: Format Go code
+    cmds:
+      - go fmt ./...
+
+  fmt-frontend:
+    desc: Format frontend code (requires local bun)
+    dir: frontend
+    cmds:
+      - bun run lint --fix
+
+  # =============================================================================
+  # Local Development (without Docker)
+  # =============================================================================
+
+  install:
+    desc: Install frontend dependencies locally
+    dir: frontend
+    cmds:
+      - bun install
+
+  dev-backend:
+    desc: Run Go backend with Air (requires local air)
+    cmds:
+      - air -c .air.toml
+
+  dev-frontend:
+    desc: Run Vite dev server (requires local bun)
+    dir: frontend
+    cmds:
+      - bun run dev
+
+  build-local:
+    desc: Build Go binary locally
+    cmds:
+      - |
+        go build \
+          -ldflags "-X goact-stack/version.Tag={{.GIT_COMMIT}}" \
+          -o ./bin/{{.APP_NAME}} \
+          ./cmd/{{.APP_NAME}}/
+
+  # =============================================================================
+  # Cleanup
+  # =============================================================================
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf ./tmp ./bin
+      - rm -rf ./frontend/node_modules
+      - rm -rf ./internal/static/dist
+
+  clean-docker:
+    desc: Remove Docker volumes and images
+    cmds:
+      - docker compose down -v
+      - docker rmi {{.DEV_IMAGE}} 2>/dev/null || true
