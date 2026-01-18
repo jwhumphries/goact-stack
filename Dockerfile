@@ -4,7 +4,7 @@
 # =============================================================================
 
 # Stage: gobase - Go toolchain with hot-reload tools
-FROM golang:1.24-alpine AS gobase
+FROM golang:1.25-alpine AS gobase
 
 RUN apk add --no-cache git
 RUN go install github.com/air-verse/air@latest
