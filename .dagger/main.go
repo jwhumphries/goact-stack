@@ -10,6 +10,14 @@ import (
 
 type GoactStack struct{}
 
+const embedPlaceholder = `<!DOCTYPE html><html><head><title>Build Required</title></head><body><h1>Run bun run build in frontend/ first</h1></body></html>`
+
+// withEmbedPlaceholder ensures the static embed directory has a file so Go builds succeed.
+// This avoids requiring a frontend build just to lint or test Go code.
+func (m *GoactStack) withEmbedPlaceholder(source *dagger.Directory) *dagger.Directory {
+	return source.WithNewFile("internal/static/dist/index.html", embedPlaceholder)
+}
+
 func (m *GoactStack) gitVersion(ctx context.Context, git *dagger.Directory) (string, error) {
 	if git == nil {
 		return "dev", nil
@@ -80,7 +88,7 @@ func (m *GoactStack) lintSource(ctx context.Context, source *dagger.Directory) (
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithMountedCache("/golangci-lint-cache", dag.CacheVolume("golangci-lint-cache")).
-		WithDirectory("/app", source).
+		WithDirectory("/app", m.withEmbedPlaceholder(source)).
 		WithWorkdir("/app").
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"}).
 		Stdout(ctx)
@@ -117,7 +125,7 @@ func (m *GoactStack) testSource(ctx context.Context, source *dagger.Directory) (
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
-		WithDirectory("/app", source).
+		WithDirectory("/app", m.withEmbedPlaceholder(source)).
 		WithWorkdir("/app").
 		WithExec([]string{"go", "test", "-v", "./..."}).
 		Stdout(ctx)
