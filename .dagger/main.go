@@ -81,13 +81,14 @@ func (m *GoactStack) Lint(ctx context.Context, source *dagger.Directory) (string
 
 func (m *GoactStack) lintSource(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
-		From("golangci/golangci-lint:v2.1.6-alpine").
+		From("golang:1.25-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithEnvVariable("GOLANGCI_LINT_CACHE", "/golangci-lint-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithMountedCache("/golangci-lint-cache", dag.CacheVolume("golangci-lint-cache")).
+		WithExec([]string{"go", "install", "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0"}).
 		WithDirectory("/app", m.withEmbedPlaceholder(source)).
 		WithWorkdir("/app").
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"}).
@@ -120,7 +121,7 @@ func (m *GoactStack) Test(ctx context.Context, source *dagger.Directory) (string
 
 func (m *GoactStack) testSource(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
-		From("golang:1.24-alpine").
+		From("golang:1.25-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
@@ -144,7 +145,7 @@ func (m *GoactStack) BuildFrontend(source *dagger.Directory) *dagger.Directory {
 
 func (m *GoactStack) BuildBinary(source *dagger.Directory, version string) *dagger.Container {
 	return dag.Container().
-		From("golang:1.24-alpine").
+		From("golang:1.25-alpine").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
@@ -188,7 +189,7 @@ func (m *GoactStack) Release(
 
 func (m *GoactStack) Fmt(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
-		From("golang:1.24-alpine").
+		From("golang:1.25-alpine").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"go", "fmt", "./..."}).
