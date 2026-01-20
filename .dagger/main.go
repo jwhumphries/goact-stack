@@ -81,14 +81,13 @@ func (m *GoactStack) Lint(ctx context.Context, source *dagger.Directory) (string
 
 func (m *GoactStack) lintSource(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
-		From("golang:1.25-alpine").
+		From("golangci/golangci-lint:v2.8.0-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithEnvVariable("GOLANGCI_LINT_CACHE", "/golangci-lint-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithMountedCache("/golangci-lint-cache", dag.CacheVolume("golangci-lint-cache")).
-		WithExec([]string{"go", "install", "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0"}).
 		WithDirectory("/app", m.withEmbedPlaceholder(source)).
 		WithWorkdir("/app").
 		WithExec([]string{"golangci-lint", "run", "--timeout", "5m"}).
